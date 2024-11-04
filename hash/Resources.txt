@@ -1,0 +1,5 @@
+https://www.mscs.dal.ca/~selinger/md5collision/
+
+https://ssdeep-project.github.io/ssdeep/index.html
+
+https://github.com/jessek/hashdeep

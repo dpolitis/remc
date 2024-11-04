@@ -1,0 +1,9 @@
+https://github.com/Neo23x0/Loki
+
+https://github.com/Yara-Rules/rules
+
+https://github.com/Neo23x0/signature-base.git
+
+https://www.nextron-systems.com/2015/02/16/write-simple-sound-yara-rules
+
+https://www.nextron-systems.com/2015/10/17/how-to-write-simple-but-sound-yara-rules-part-2

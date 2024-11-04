@@ -1,0 +1,58 @@
+# Vagrantfile
+Vagrant.configure("2") do |config|
+  # Use the official Ubuntu 22.04 LTS box
+  config.vm.box = "ubuntu/jammy64"
+  config.vm.network "private_network", ip: "192.168.57.10"
+
+  # Enable nested virtualization passthrough
+  config.vm.provider "virtualbox" do |vb|
+    vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
+    vb.memory = 4096           # Set memory as per CAPE requirements
+    vb.cpus = 2                # Adjust CPU count as needed
+  end
+
+  # Provision script to install CAPE
+  config.vm.provision "shell", inline: <<-SHELL
+    # Update package list and install dependencies
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
+    sudo apt-get install -y git build-essential cmake ninja-build python3-dev \
+                            cython3 pybind11-dev python3-pip libre2-dev vim \
+                            acpica-tools net-tools gperf xsltproc
+
+    # Clone the CAPE repository
+    if [ ! -d "/home/vagrant/CAPEv2" ]; then
+      git clone https://github.com/kevoreilly/CAPEv2.git /home/vagrant/CAPEv2
+    fi
+
+    # Navigate to CAPE directory
+    cd /home/vagrant/CAPEv2/installer
+
+    sed -i -e 's/PEN_REPLACER='\''<WOOT>'\''/PEN_REPLACER='\''Intel Pen'\''/' \
+           -e 's/SCSI_REPLACER='\''<WOOT>'\''/SCSI_REPLACER='\''ATA Disk'\''/' \
+           -e 's/ATAPI_REPLACER='\''<WOOT>'\''/ATAPI_REPLACER='\''DVD-ROM'\''/' \
+           -e 's/MICRODRIVE_REPLACER='\''<WOOT>'\''/MICRODRIVE_REPLACER='\''Generic Flash Disk'\''/' \
+           -e 's/BOCHS_BLOCK_REPLACER='\''<WOOT>'\''/BOCHS_BLOCK_REPLACER='\''Intel SSD'\''/' \
+           -e 's/BOCHS_BLOCK_REPLACER2='\''<WOOT>'\''/BOCHS_BLOCK_REPLACER2='\''Kingston SSD'\''/' \
+           -e 's/BOCHS_BLOCK_REPLACER3='\''<WOOT>'\''/BOCHS_BLOCK_REPLACER3='\''Seagate HDD'\''/' \
+           -e 's/BXPC_REPLACER='\''<WOOT>'\''/BXPC_REPLACER='\''Intel'\''/' ./kvm-qemu.sh
+
+    sed -i -e 's/^NETWORK_IFACE=.*/NETWORK_IFACE=ens196/' \
+       -e 's/^IFACE_IP=".*/IFACE_IP="192.168.57.10"/' \
+       -e 's/^PASSWD=".*/PASSWD="vagrant"/' ./cape2.sh
+
+    chown -R vagrant:vagrant /home/vagrant
+
+    chmod a+x kvm-qemu.sh
+    ./kvm-qemu.sh all vagrant | tee kvm-qemu.log
+
+    chmod a+x cape2.sh
+    ./cape2.sh base cape | tee cape.log
+
+    echo "CAPE installation completed."
+  SHELL
+
+  # Optional SSH configuration
+  config.vm.network "forwarded_port", guest: 8000, host: 8000  # Access CAPE web interface on localhost:8000
+end
+

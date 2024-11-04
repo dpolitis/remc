@@ -1,0 +1,24 @@
+## VIRSH Command
+
+virsh list --all
+virsh list --autostart
+
+virsh start win10x64_1
+
+virsh autostart win10x64_1
+
+## SystemD Services
+
+systemctl <action> cape
+systemctl <action> cape-rooter
+systemctl <action> cape-processor
+systemctl <action> cape-web
+
+## TSHOOT
+
+journalctl -u cape -n 100 -f
+
+and
+
+/opt/CAPEv2/logs
+Clear <last-N> Analysis
